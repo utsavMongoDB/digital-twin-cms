@@ -33,15 +33,15 @@ echo "---------------------- MONGODB ATLAS SETUP ----------------------------"
 
 # Update AWS Account ID
 cd ../atlas-backend/Connected-Vehicle/triggers
-sed -i 1 "s/<ACCOUNT_ID>/$awsID/" eventbridge_publish_battery_telemetry.json
-sed -i 1 "s/<REGION>/$awsRegion/" eventbridge_publish_battery_telemetry.json
+sed -i 1 "s/<ACCOUNT_ID>/979559056307/" eventbridge_publish_battery_telemetry.json
+sed -i 1 "s/<REGION>/us-east-1/" eventbridge_publish_battery_telemetry.json
 rm eventbridge_publish_battery_telemetry.json1  
 
 
 cd ../../
 echo "Logging in to Atlas..."
 
-appservices login --api-key=$apiKey --private-api-key=$pvtApiKey
+appservices login --api-key=aeewzbjo --private-api-key=20cd1330-cfb4-4ddc-8c96-49ffb3cee1be
 
 echo "Pushing Connected-Vehicle app to Atlas...This may take a while!"
 #TODO: Fix this for Appservices CLI
