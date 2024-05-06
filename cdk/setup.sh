@@ -24,6 +24,7 @@ awsRegion=$AWS_REGION
 
 echo "---------------------- MONGODB ATLAS SETUP ----------------------------"
 npm install -g atlas-app-services-cli
+appservices login --api-key=$API_KEY --private-api-key=$PRIVATE_KEY
 
 # Update AWS Account ID
 cd ../atlas-backend/Connected-Vehicle/triggers
@@ -84,7 +85,6 @@ curl_output=$(curl -s --request POST \
 access_token=$(echo "$curl_output" | jq -r '.access_token')
 echo "Access Token: $access_token"
 
-appservices login --api-key=$API_KEY --private-api-key=$PRIVATE_KEY
 # Save in a variable
 appservices_output=$(appservices apps list)
 echo "$appservices_output" > appservices_output.log 
@@ -103,22 +103,3 @@ aws events create-event-bus --region $awsRegion --event-source-name aws.partner/
 
 echo "Associated!"
 
-# pwd
-# cd ../aws-sagemaker
-# ## Create AWS ECR Repository 
-# echo "Creating ECR Repositories..."
-# aws ecr create-repository --repository-name cli_connected_vehicle_atlas_to_sagemaker --region $awsRegion
-# aws ecr create-repository --repository-name cli_connected_vehicle_sagemaker_to_atlas --region $awsRegion
-# echo "ECR Repositories created for storing Lambda functions!"
-
-# cd code/pull_from_mdb
-# ## Update the Sagemaker Endpoint and Eventbus
-# sed -i "s/<SAGEMAKER_ENDPOINT>/$sagemakerEndpoint/" app.py
-# sed -i "s/<REGION>/$awsRegion/" app.py
-
-# echo "Building and pushing the image to ECR..."
-
-# docker login -u AWS -p $(aws ecr get-login-password --region $awsRegion) $awsID.dkr.ecr.$awsRegion.amazonaws.com
-# docker build -t cli_connected_vehicle_atlas_to_sagemaker .
-# docker tag cli_connected_vehicle_atlas_to_sagemaker:latest $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest
-# docker push $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest
