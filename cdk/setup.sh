@@ -88,7 +88,7 @@ echo "Access Token: $access_token"
 # Save in a variable
 appservices_output=$(appservices apps list)
 echo "$appservices_output" > appservices_output.log 
-read -r project_id client_app_id <<< "$(awk '\"$app_id\" {print $2, $3}' appservices_output.log)"
+read -r project_id client_app_id <<< "$(awk -v app_id="$app_id" '$0 ~ app_id {print $2, $3}' appservices_output.log)"
 echo "Client App ID: $client_app_id"
 echo "Project ID: $project_id"
 
