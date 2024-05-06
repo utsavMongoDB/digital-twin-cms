@@ -83,8 +83,9 @@ curl_output=$(curl -s --request POST \
 
 # Extract the access_token using jq
 access_token=$(echo "$curl_output" | jq -r '.access_token')
+echo "Access Token: $access_token"
 
-# appservices login --api-key=aeewzbjo --private-api-key=20cd1330-cfb4-4ddc-8c96-49ffb3cee1be
+appservices login --api-key=$API_KEY --private-api-key=$PRIVATE_KEY
 # Save in a variable
 appservices_output=$(appservices apps list)
 echo "$appservices_output" > appservices_output.log 
