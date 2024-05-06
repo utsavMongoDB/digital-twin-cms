@@ -86,7 +86,7 @@ sed -i "s/<REGION>/$awsRegion/" app.py
 
 echo "Building and pushing the image to ECR..."
 
-docker login --username AWS --password-stdin $awsID.dkr.ecr.$awsRegion.amazonaws.com
+docker login -u AWS -p $(aws ecr get-login-password --region $awsRegion) $awsID.dkr.ecr.$awsRegion.amazonaws.com
 docker build -t cli_connected_vehicle_atlas_to_sagemaker .
 docker tag cli_connected_vehicle_atlas_to_sagemaker:latest $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest
 docker push $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest
