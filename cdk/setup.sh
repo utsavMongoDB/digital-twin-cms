@@ -80,7 +80,7 @@ echo "Associating Eventbus..."
 curl_output=$(curl -s --request POST \
   --header 'Content-Type: application/json' \
   --header 'Accept: application/json' \
-  --data '{"username": '$API_KEY', "apiKey": '$PRIVATE_KEY'}' \
+  --data '{"username": $API_KEY, "apiKey": $PRIVATE_KEY}' \
   https://services.cloud.mongodb.com/api/admin/v3.0/auth/providers/mongodb-cloud/login)
 
 # Extract the access_token using jq
