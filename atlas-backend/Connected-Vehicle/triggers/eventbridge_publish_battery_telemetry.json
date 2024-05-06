@@ -33,10 +33,11 @@
     },
     "disabled": false,
     "event_processors": {
-        "FUNCTION": {
+        "AWS_EVENTBRIDGE": {
             "config": {
-                "function_name": "bridgeSageMakerIntegration"
+               "account_id": "<ACCOUNT_ID>",
+               "region": "<REGION>"
             }
-        }
+         }
     }
 }
