@@ -1,6 +1,6 @@
 
 // Provide the Realm App ID
-export const appID = "<--YOUR APP SERVICES ID-->"
+export const appID = "connected-vehicle-.*"
 
 // Provide the configured Email/Password user account. 
 // If you have changed the password while creating the user you must update it here too
