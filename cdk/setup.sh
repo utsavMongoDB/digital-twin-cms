@@ -23,7 +23,7 @@ awsID=$AWS_ACCOUNT_ID
 awsRegion=$AWS_REGION
 
 echo "---------------------- MONGODB ATLAS SETUP ----------------------------"
-# npm install -g atlas-app-services-cli
+npm install -g atlas-app-services-cli
 
 # # Update AWS Account ID
 # cd ../atlas-backend/Connected-Vehicle/triggers
