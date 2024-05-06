@@ -35,8 +35,6 @@ npm install -g atlas-app-services-cli
 # cd ../../
 # echo "Logging in to Atlas..."
 
-# appservices login --api-key=aeewzbjo --private-api-key=20cd1330-cfb4-4ddc-8c96-49ffb3cee1be
-
 # echo "Pushing Connected-Vehicle app to Atlas...This may take a while!"
 # #TODO: Fix this for Appservices CLI
 
@@ -80,7 +78,7 @@ echo "Associating Eventbus..."
 curl_output=$(curl -s --request POST \
   --header 'Content-Type: application/json' \
   --header 'Accept: application/json' \
-  --data '{"username": $API_KEY, "apiKey": $PRIVATE_KEY}' \
+  --data "{\"username\": \"$API_KEY\", \"apiKey\": \"$PRIVATE_KEY\"}" \
   https://services.cloud.mongodb.com/api/admin/v3.0/auth/providers/mongodb-cloud/login)
 
 # Extract the access_token using jq
