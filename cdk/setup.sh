@@ -22,12 +22,6 @@ pvtApiKey=$PRIVATE_KEY
 awsID=$AWS_ACCOUNT_ID
 awsRegion=$AWS_REGION
 
-# apiKey="aeewzbjo"
-# pvtApiKey="20cd1330-cfb4-4ddc-8c96-49ffb3cee1be"
-# awsID="979559056307"
-# awsRegion="us-east-1"
-
-
 echo "---------------------- MONGODB ATLAS SETUP ----------------------------"
 # npm install -g atlas-app-services-cli
 
@@ -77,7 +71,22 @@ echo "Please enter the following details to setup AWS : "
 sagemakerEndpoint=$SAGEMAKER_ENDPOINT
 mongoURI=$MONGODB_URI
 
-## Create AWS Eventbus 
-echo "Associating Eventbus..."
+pwd
+cd ../aws-sagemaker
+## Create AWS ECR Repository 
+echo "Creating ECR Repositories..."
+# aws ecr create-repository --repository-name cli_connected_vehicle_atlas_to_sagemaker --region $awsRegion
+# aws ecr create-repository --repository-name cli_connected_vehicle_sagemaker_to_atlas --region $awsRegion
+# echo "ECR Repositories created for storing Lambda functions!"
 
-aws s3 ls
+cd code/pull_from_mdb
+## Update the Sagemaker Endpoint and Eventbus
+sed -i "s/<SAGEMAKER_ENDPOINT>/$sagemakerEndpoint/" app.py
+sed -i "s/<REGION>/$awsRegion/" app.py
+
+echo "Building and pushing the image to ECR..."
+
+aws ecr get-login-password --region $awsRegion | docker login --username AWS --password-stdin $awsID.dkr.ecr.$awsRegion.amazonaws.com
+docker build -t cli_connected_vehicle_atlas_to_sagemaker .
+docker tag cli_connected_vehicle_atlas_to_sagemaker:latest $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest
+docker push $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest
