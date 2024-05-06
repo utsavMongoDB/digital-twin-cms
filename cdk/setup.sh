@@ -33,8 +33,8 @@ echo "---------------------- MONGODB ATLAS SETUP ----------------------------"
 
 # Update AWS Account ID
 cd ../atlas-backend/Connected-Vehicle/triggers
-sed -i 1 "s/<ACCOUNT_ID>/979559056307/" eventbridge_publish_battery_telemetry.json
-sed -i 1 "s/<REGION>/us-east-1/" eventbridge_publish_battery_telemetry.json
+sed -i "s/<ACCOUNT_ID>/979559056307/" eventbridge_publish_battery_telemetry.json
+sed -i "s/<REGION>/us-east-1/" eventbridge_publish_battery_telemetry.json
 rm eventbridge_publish_battery_telemetry.json1  
 
 
@@ -65,5 +65,5 @@ cd ../..
 npm install
 npm run build
 echo "Starting the web-app..."
-# nohup npm start > start.log 2>&1 &
-# echo "Web-app started successfully!"
+nohup npm start > start.log 2>&1 &
+echo "Web-app started successfully!"
