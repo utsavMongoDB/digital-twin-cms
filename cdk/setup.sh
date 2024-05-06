@@ -21,6 +21,8 @@ apiKey=$API_KEY
 pvtApiKey=$PRIVATE_KEY
 awsID=$AWS_ACCOUNT_ID
 awsRegion=$AWS_REGION
+sagemakerEndpoint=$SAGEMAKER_ENDPOINT
+mongoURI=$MONGODB_URI
 
 echo "---------------------- MONGODB ATLAS SETUP ----------------------------"
 npm install -g atlas-app-services-cli
@@ -30,7 +32,6 @@ appservices login --api-key=$API_KEY --private-api-key=$PRIVATE_KEY
 cd ../atlas-backend/Connected-Vehicle/triggers
 sed -i "s/<ACCOUNT_ID>/979559056307/" eventbridge_publish_battery_telemetry.json
 sed -i "s/<REGION>/us-east-1/" eventbridge_publish_battery_telemetry.json
-# rm eventbridge_publish_battery_telemetry.json1  
 
 
 cd ../../
@@ -65,11 +66,6 @@ echo "Web-app started successfully!"
 echo "---------------------- AWS SETUP ----------------------------"
 
 echo "Setting up AWS services!"
-echo "Please enter the following details to setup AWS : "
-## Input for Sagemaker Endpoint and MongoDB URI
-sagemakerEndpoint=$SAGEMAKER_ENDPOINT
-mongoURI=$MONGODB_URI
-
 ## Create AWS Eventbus 
 echo "Associating Eventbus..."
 
@@ -103,3 +99,115 @@ aws events create-event-bus --region $awsRegion --event-source-name aws.partner/
 
 echo "Associated!"
 
+
+pwd
+cd ../aws-sagemaker
+## Create AWS ECR Repository 
+echo "Creating ECR Repositories..."
+aws ecr create-repository --repository-name cli_connected_vehicle_atlas_to_sagemaker --region $awsRegion
+aws ecr create-repository --repository-name cli_connected_vehicle_sagemaker_to_atlas --region $awsRegion
+echo "ECR Repositories created for storing Lambda functions!"
+
+cd code/pull_from_mdb
+## Update the Sagemaker Endpoint and Eventbus
+sed -i "s/<SAGEMAKER_ENDPOINT>/$SAGEMAKER_ENDPOINT/" app.py
+sed -i "s/<REGION>/$awsRegion/" app.py
+
+## Push to ECR - Image 1
+echo "Building and pushing the image to ECR..."
+docker login -u AWS -p $(aws ecr get-login-password --region $awsRegion) $awsID.dkr.ecr.$awsRegion.amazonaws.com
+docker build -t cli_connected_vehicle_atlas_to_sagemaker .
+docker tag cli_connected_vehicle_atlas_to_sagemaker:latest $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest
+docker push $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest
+
+
+## Create a role with permissions to access Sagemaker and Lambda
+echo "Creating a role with permissions to access Sagemaker and Lambda..."
+sed -i "s/<REGION>/$awsRegion/" role-policy.json
+sed -i "s/<ACCOUNT_ID>/$awsID/" role-policy.json
+
+aws iam create-role --role-name cli_connected_vehicle_atlas_to_sagemaker_role --assume-role-policy-document file://role-policy.json --region $awsRegion
+
+# Add a wait for role to be created.
+echo "Waiting for the role to be created..."
+counter=0
+while true; do
+    if aws iam get-role --role-name cli_connected_vehicle_atlas_to_sagemaker_role > /dev/null 2>&1; then
+        echo "Role Created Successfully!"
+        break
+    else
+        echo "Role not yet created, waited for $counter sec"
+        sleep 5
+        let counter+=5
+    fi
+done
+
+
+## Create Lambda Function using ECR Image and Role
+echo "Creating Lambda function using the ECR Image..."
+aws lambda create-function --function-name sagemaker-pull-partner-cli --role arn:aws:iam::$awsID:role/cli_connected_vehicle_atlas_to_sagemaker_role --region $awsRegion --code ImageUri=$awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_atlas_to_sagemaker:latest --package-type Image
+
+# Push to ECR - Image 2
+pwd
+cd ../push_to_mdb
+sed -i "s/<MONGODB_URI>/$mongoURI/" write_to_mdb.py
+
+echo "Building and pushing second image to ECR..."
+docker build -t cli_connected_vehicle_sagemaker_to_atlas .
+docker tag cli_connected_vehicle_sagemaker_to_atlas:latest $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_sagemaker_to_atlas:latest
+docker push $awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_sagemaker_to_atlas:latest
+
+echo "Creating Lambda function using the ECR Image..."
+aws lambda create-function --function-name sagemaker-push-partner-cli --role arn:aws:iam::$awsID:role/cli_connected_vehicle_atlas_to_sagemaker_role --region $awsRegion --code ImageUri=$awsID.dkr.ecr.$awsRegion.amazonaws.com/cli_connected_vehicle_sagemaker_to_atlas:latest --package-type Image
+
+# Create Rule for AWS event bus
+echo "Creating a rule for the event bus..."
+aws events put-rule --name sagemaker-pull \
+    --event-pattern '{"source": [{"prefix": "aws.partner/mongodb.com"}]}' \
+    --event-bus-name aws.partner/mongodb.com/stitch.trigger/$triggerId \
+    --region $awsRegion 
+
+aws events put-targets --rule sagemaker-pull \
+    --targets "Id"="1","Arn"="arn:aws:lambda:$awsRegion:$awsID:function:sagemaker-pull-partner-cli" \
+    --region $awsRegion \
+    --event-bus-name aws.partner/mongodb.com/stitch.trigger/$triggerId
+
+
+echo "Associating eventbridge with lambda function..."
+aws lambda add-permission \
+--function-name sagemaker-pull-partner-cli \
+--statement-id trigger-event \
+--action 'lambda:InvokeFunction' \
+--principal events.amazonaws.com \
+--source-arn arn:aws:events:$awsRegion:$awsID:rule/aws.partner/mongodb.com/stitch.trigger/$triggerId/sagemaker-pull \
+--region $awsRegion
+
+
+# Create Event bus for Sagemaker to Atlas
+echo "Creating Event bus for Sagemaker to Atlas..."
+aws events create-event-bus --name cli_pushing_to_mongodb --region $awsRegion  
+
+## Create rule for Sagemaker to Atlas
+echo "Creating a rule for Sagemaker to Atlas..."
+aws events put-rule --name push_to_lambda \
+    --event-pattern '{"source": ["user-event"], "detail-type": ["user-preferences"]}' \
+    --event-bus-name cli_pushing_to_mongodb \
+    --region $awsRegion
+
+aws events put-targets --rule push_to_lambda \
+    --targets "Id"="1","Arn"="arn:aws:lambda:$awsRegion:$awsID:function:sagemaker-push-partner-cli" \
+    --region $awsRegion \
+    --event-bus-name cli_pushing_to_mongodb
+
+
+echo "Associating eventbridge with lambda function..."
+aws lambda add-permission \
+--function-name cli_pushing_to_mongodb \
+--statement-id trigger-event \
+--action 'lambda:InvokeFunction' \
+--principal events.amazonaws.com \
+--source-arn arn:aws:events:$awsRegion:$awsID:rule/push_to_lambda \
+--region $awsRegion
+
+
+echo "------------------  AWS setup completed successfully!  ------------------"
