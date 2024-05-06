@@ -17,15 +17,15 @@ catchError() {
 
 echo "Goto atlas and create API key"
 # open "https://www.mongodb.com/docs/atlas/app-services/cli/#generate-an-api-key"
-# apiKey=$API_KEY
-# pvtApiKey=$PRIVATE_KEY
-# awsID=$AWS_ACCOUNT_ID
-# awsRegion=$AWS_REGION
+apiKey=$API_KEY
+pvtApiKey=$PRIVATE_KEY
+awsID=$AWS_ACCOUNT_ID
+awsRegion=$AWS_REGION
 
-apiKey="aeewzbjo"
-pvtApiKey="20cd1330-cfb4-4ddc-8c96-49ffb3cee1be"
-awsID="979559056307"
-awsRegion="us-east-1"
+# apiKey="aeewzbjo"
+# pvtApiKey="20cd1330-cfb4-4ddc-8c96-49ffb3cee1be"
+# awsID="979559056307"
+# awsRegion="us-east-1"
 
 
 echo "---------------------- MONGODB ATLAS SETUP ----------------------------"
