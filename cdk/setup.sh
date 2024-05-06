@@ -60,7 +60,7 @@ echo "Below are the apps in your account..."
 appservices apps list
 
 cd ../vehicle-ts/src/realm
-sed -i 1 "s/connected-vehicle-.*/"$app_id"\"/" config.ts
+sed -i "s/connected-vehicle-.*/"$app_id"\"/" config.ts
 cd ../..
 npm install
 npm run build
