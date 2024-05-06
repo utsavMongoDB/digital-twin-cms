@@ -22,7 +22,6 @@ echo "Goto atlas and create API key"
 # awsID=$AWS_ACCOUNT_ID
 # awsRegion=$AWS_REGION
 
-
 apiKey="aeewzbjo"
 pvtApiKey="20cd1330-cfb4-4ddc-8c96-49ffb3cee1be"
 awsID="979559056307"
@@ -30,12 +29,13 @@ awsRegion="us-east-1"
 
 
 echo "---------------------- MONGODB ATLAS SETUP ----------------------------"
+npm install -g atlas-app-services-cli
 
 # Update AWS Account ID
 cd ../atlas-backend/Connected-Vehicle/triggers
 sed -i "s/<ACCOUNT_ID>/979559056307/" eventbridge_publish_battery_telemetry.json
 sed -i "s/<REGION>/us-east-1/" eventbridge_publish_battery_telemetry.json
-rm eventbridge_publish_battery_telemetry.json1  
+# rm eventbridge_publish_battery_telemetry.json1  
 
 
 cd ../../
