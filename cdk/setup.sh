@@ -65,5 +65,6 @@ cd ../..
 npm install
 npm run build
 echo "Starting the web-app..."
-nohup npm start > start.log 2>&1 &
+npm start
+# nohup npm start > start.log 2>&1 &
 echo "Web-app started successfully!"
