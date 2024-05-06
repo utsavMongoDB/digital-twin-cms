@@ -99,7 +99,7 @@ curl_output=$(curl -s --request GET \
   "https://services.cloud.mongodb.com/api/admin/v3.0/groups/$project_id/apps/$client_app_id/triggers")
 echo "Curl output: $curl_output"
 triggerId=$(echo "$curl_output" | jq -r '.[] | select(.name == "eventbridge_publish_battery_telemetry") | ._id')
-
+echo "trigger Id : $triggerId" 
 aws events create-event-bus --region $awsRegion --event-source-name aws.partner/mongodb.com/stitch.trigger/$triggerId --name aws.partner/mongodb.com/stitch.trigger/$triggerId 
 
 echo "Associated!"
