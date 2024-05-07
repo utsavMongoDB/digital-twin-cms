@@ -142,6 +142,7 @@ while true; do
     fi
 done
 
+sleep 5s
 
 ## Create Lambda Function using ECR Image and Role
 echo "Creating Lambda function using the ECR Image..."
